@@ -103,7 +103,6 @@ Models explored:
 
 - Logistic Regression
 - Random Forest
-- Gradient Boosting
 - XGBoost
 - Support Vector Machines
 
@@ -181,19 +180,9 @@ pip install -r requirements.txt
 
 ---
 
-# Example Training Command
-
-Example training run:
-
-```
-python src/models/train_tabular_models.py --dataset wisconsin --model xgboost --seed 42
-```
-
----
-
 # Evaluation
 
-Given the clinical context of breast cancer detection, model evaluation focuses on metrics that better capture performance under potential class imbalance and diagnostic relevance.
+Model evaluation focuses on metrics that better capture performance under potential class imbalance and diagnostic relevance.
 
 The primary metrics considered are:
 
@@ -209,12 +198,6 @@ The primary metrics considered are:
 
 - **Specificity (True Negative Rate)**  
   Measures how well the model correctly identifies non-cancer cases.
-
-- **Positive Predictive Value (PPV / Precision)**  
-  Indicates the proportion of predicted cancer cases that are actually malignant.
-
-- **Negative Predictive Value (NPV)**  
-  Indicates the proportion of predicted non-cancer cases that are actually benign.
 
 Error analysis includes:
 
