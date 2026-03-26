@@ -3,8 +3,7 @@ import numpy as np
 import pandas as pd
 from non_parametric import frequency_table
 from non_parametric.empirical_cumulative_distribution import cdf
-from sklearn.base import BaseEstimator
-
+from sklearn.base import BaseEstimator, TransformerMixin
 
 def generate_multivariate_data(
     X: pd.DataFrame, bins: int = 10, N: int = 1000
@@ -119,130 +118,84 @@ def generate_multivariate_data(
     return X_generated
 
 
-class SyntheticDataGenerator(BaseEstimator):
-    """
-    Custom synthetic data generator compatible with sklearn-like pipelines.
 
-    This class balances datasets by generating synthetic samples per class
-    using a non-parametric multivariate method.
+class SyntheticDataGenerator(BaseEstimator, TransformerMixin):
+    """
+    Synthetic data generator compatible with sklearn pipelines.
+
+    Generates synthetic samples during transform using stored y from fit.
     """
 
     def __init__(self, n_to_generate: Optional[Dict] = None):
         self.n_to_generate = n_to_generate
 
-    def _calculate_samples_to_generate(self) -> Dict:
-        """
-        This method determines how many samples need to be generated for each class
-        so that all classes reach the size of the majority class.
-
-        Returns
-        -------
-        Dict
-            Dictionary where:
-            - keys are class labels
-            - values are the number of samples to generate per class
-        """
-
-        values_dict = self.y.value_counts().to_dict()
+    def _calculate_samples_to_generate(self, y: pd.Series) -> Dict:
+        values_dict = y.value_counts().to_dict()
         max_count = max(values_dict.values())
-        n_to_generate = {}
 
-        for key in values_dict.keys():
-            n_to_generate.update({key: max_count - values_dict[key]})
-
-        return n_to_generate
+        return {k: max_count - v for k, v in values_dict.items()}
 
     def fit(self, X: pd.DataFrame, y: pd.Series):
-        """
-        Fit the synthetic data generator.
-
-        Stores the input data and computes the number of samples to generate
-        for each class based on class imbalance.
-
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Feature matrix.
-        y : pd.Series
-            Target labels.
-
-        Returns
-        -------
-        self
-            Fitted instance of the generator.
-        """
-
-        self.X = X
-        self.y = y
+        self.y_ = y.reset_index(drop=True)
 
         if self.n_to_generate is None:
-            self.n_to_generate_ = self._calculate_samples_to_generate()
+            self.n_to_generate_ = self._calculate_samples_to_generate(self.y_)
         else:
             self.n_to_generate_ = self.n_to_generate
 
         return self
 
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        y = self.y_
+
+        synthetic_X_list = []
+
+        for key, n in self.n_to_generate_.items():
+            if n > 0:
+                X_class = X[y == key].copy().reset_index(drop=True)
+
+                synthetic_X = generate_multivariate_data(X=X_class, N=n)
+                synthetic_X_list.append(synthetic_X)
+
+        if synthetic_X_list:
+            X_synth = pd.concat(synthetic_X_list, ignore_index=True)
+            X_res = pd.concat([X, X_synth], ignore_index=True)
+        else:
+            X_res = X
+
+        return X_res
+
+    def fit_transform(self, X: pd.DataFrame, y: pd.Series):
+        self.fit(X, y)
+
+        X_res = self.transform(X)
+
+        y_res = self._resample_y(y)
+
+        return X_res, y_res
+
     def fit_resample(
         self, X: pd.DataFrame, y: pd.Series
     ) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Fit the generator and return a balanced dataset.
-
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Feature matrix.
-        y : pd.Series
-            Target labels.
-
-        Returns
-        -------
-        Tuple[pd.DataFrame, pd.Series]
-            Resampled feature matrix and target labels with balanced classes.
-        """
 
         self.fit(X, y)
-        X_res, y_res = self.transform()
+
+        X_res = self.transform(X)
+        y_res = self._resample_y(y)
+
         return X_res, y_res
 
-    def transform(self) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Generate synthetic samples and return the augmented dataset.
-
-        Synthetic data is generated for each class according to the number
-        of samples computed during the fit step. The generated samples are
-        concatenated with the original dataset.
-
-        Returns
-        -------
-        Tuple[pd.DataFrame, pd.Series]
-            Augmented feature matrix and corresponding labels.
-
-        Notes
-        -----
-        - Synthetic samples are generated independently per class.
-        - If no imbalance is detected, the original dataset is returned unchanged.
-        """
-
-        synthetic_X_list = []
+    def _resample_y(self, y: pd.Series) -> pd.Series:
         synthetic_y_list = []
 
         for key, n in self.n_to_generate_.items():
             if n > 0:
-                X_class = self.X[self.y == key].copy().reset_index(drop=True)
+                synthetic_y_list.append(pd.Series([key] * n))
 
-                synthetic_X = generate_multivariate_data(X=X_class, N=n)
-
-                synthetic_X_list.append(synthetic_X)
-                synthetic_y_list.append(pd.Series([key] * len(synthetic_X)))
-
-        if synthetic_X_list:
-            X_synth = pd.concat(synthetic_X_list, ignore_index=True)
+        if synthetic_y_list:
             y_synth = pd.concat(synthetic_y_list, ignore_index=True)
-
-            X_res = pd.concat([self.X, X_synth], ignore_index=True)
-            y_res = pd.concat([self.y, y_synth], ignore_index=True)
+            y_res = pd.concat([y.reset_index(drop=True), y_synth], ignore_index=True)
         else:
-            X_res, y_res = self.X, self.y
+            y_res = y
 
-        return X_res, y_res
+        return y_res
