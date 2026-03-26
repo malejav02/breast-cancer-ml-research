@@ -1,186 +1,224 @@
-# Breast Cancer ML Research
+# Breast Cancer ML Pipeline
 
-Machine learning research on breast cancer detection using multiple publicly available datasets, combining **clinical biomarkers**, **diagnostic imaging features**, and **histopathology images**.
-
-This repository implements reproducible pipelines for **data preprocessing, model training, evaluation, and error analysis** across several datasets commonly used in machine learning research.
-
-The goal is to explore how different data modalities contribute to breast cancer prediction and to compare classical and deep learning approaches across datasets.
+End-to-end Machine Learning pipeline for breast cancer classification using the Wisconsin dataset.
+This project covers data processing, feature engineering, model training, evaluation, experiment tracking (MLflow), and deployment via FastAPI.
 
 ---
 
-# Datasets
+## Project Overview
 
-This repository uses three well-known breast cancer datasets.
+This repository implements a **modular and reproducible ML pipeline** designed to:
 
-## 1. Breast Cancer Coimbra Dataset
-
-Clinical dataset containing metabolic and anthropometric variables associated with breast cancer.
-
-- **Samples:** 116 patients  
-- **Features:** 9 biomarkers  
-- **Variables include:** Age, BMI, Glucose, Insulin, HOMA, Leptin, Adiponectin, Resistin, MCP-1  
-- **Task:** Binary classification (Cancer vs Control)
-
-Source: UCI Machine Learning Repository
+* Load and preprocess structured medical data
+* Perform feature selection and engineering
+* Train and evaluate classification models
+* Track experiments with MLflow
+* Serve predictions via a REST API using FastAPI
 
 ---
 
-## 2. Breast Cancer Wisconsin Diagnostic Dataset
+## Project Structure
 
-- **Samples:** 569 patients  
-- **Features:** 30 computed features from digitized images of breast mass cell nuclei  
-- **Task:** Binary classification (Malignant vs Benign)
-
-Source: UCI Machine Learning Repository
-
----
-
-## 3. BreakHis Dataset
-
-Histopathological images of breast tumor tissue.
-
-- **Images:** 7,900+ microscopy images  
-- **Magnifications:** 40X, 100X, 200X, 400X  
-- **Task:** Binary classification (Benign vs Malignant)
-
-Source: Breast Cancer Histopathological Database (BreakHis)
-
----
-
-# Project Structure
-
-```
-breast-cancer-ml-research/
-
-data/
-    coimbra/
-    wisconsin/
-    breakhis/
-
-notebooks/
-    coimbra_exploration.ipynb
-    wisconsin_baseline_models.ipynb
-    breakhis_cnn_experiments.ipynb
-
-src/
-
-    data/
-        load_data.py
-        preprocessing.py
-
-    models/
-        train_tabular_models.py
-        cnn_model.py
-
-    evaluation/
-        metrics.py
-        error_analysis.py
-
-    utils/
-        seed.py
-        config.py
-
-experiments/
-    logs/
-    model_checkpoints/
-
-requirements.txt
-environment.yml
-README.md
+```bash
+.
+├── api.py                     # FastAPI application
+├── test_api.py                # API tests
+├── src/                       # Core ML pipeline
+│   ├── data/                  # Data loading and preprocessing
+│   ├── features/              # Feature engineering
+│   ├── models/                # Model configuration & export
+│   ├── pipelines/             # Training pipeline
+│   ├── evaluation/            # Metrics and evaluation
+│   └── utils/                 # Utilities (paths, seed)
+├── data/
+│   └── raw/wisconsin.csv      # Dataset
+├── models/
+│   └── wisconsin_best_model.pkl
+├── notebooks/                 
+│   ├── eda/                   # EDA and experiments
+├── reports/                   # Reports of the experiments
+├── pyproject.toml             # Package configuration
+├── requirements.txt           # Dependencies
+└── README.md
 ```
 
 ---
 
-# Machine Learning Tasks
+## Wisconsin Breast Cancer Dataset
 
-The repository includes experiments for multiple machine learning tasks.
+The Wisconsin Breast Cancer Dataset is a widely used dataset for binary classification problems in machine learning. It contains features computed from digitized images of fine needle aspirate (FNA) of breast masses. These features describe characteristics of the cell nuclei present in the images.
 
-## Tabular Data Models
+The objective of the dataset is to classify tumors into two categories:
 
-Applied to **Coimbra** and **Wisconsin** datasets.
+- **Malignant (M) - Class 0**: cancerous tumors
+- **Benign (B) - Class 1**: non-cancerous tumors
 
-Models explored:
+### Dataset Size
 
-- Logistic Regression
-- Random Forest
-- XGBoost
-- Support Vector Machines
+- **Total samples:** 569
+- **Number of features:** 30 numerical features
+- **Target variable:** Diagnosis (Malignant or Benign)
 
-Focus:
+The dataset is moderately imbalanced, with approximately:
+- **357 benign cases**
+- **212 malignant cases**
 
-- feature importance
-- biomarker relevance
-- model comparison
+### Feature Description
+
+The 30 features represent measurements of cell nuclei characteristics. These measurements are computed from the images and grouped into three categories:
+
+1. **Mean values** – average measurement across the nuclei
+2. **Standard error (SE)** – variability of the measurement
+3. **Worst values** – largest value observed
+
+Examples of features include:
+
+- **Radius** – mean distance from the center to points on the perimeter
+- **Texture** – standard deviation of gray-scale values
+- **Perimeter** – length of the boundary of the nucleus
+- **Area** – area of the nucleus
+- **Smoothness** – local variation in radius lengths
+- **Compactness** – perimeter² / area − 1
+- **Concavity** – severity of concave portions of the contour
+- **Symmetry** – symmetry of the nucleus
+- **Fractal dimension** – measure of contour complexity
+
+**Reference:**  
+https://scikit-learn.org/stable/datasets/toy_dataset.html#breast-cancer-wisconsin-diagnostic-dataset
+
 
 ---
 
-## Deep Learning on Histopathology Images
+## Installation
 
-Applied to **BreakHis** dataset.
+### 1. Clone the repository
 
-Approaches include:
-
-- Convolutional Neural Networks (CNN)
-- Transfer learning with pretrained architectures
-
-Focus:
-
-- tumor pattern recognition
-- image-level classification
-- performance comparison across magnifications
+```bash
+git clone https://github.com/your-username/breast-cancer-ml-research.git
+cd breast-cancer-ml-research
+```
 
 ---
 
-# Reproducibility
+### 2. Create and activate virtual environment
 
-To ensure reproducibility, random seeds are fixed across libraries.
-
-Example:
-
-```python
-import numpy as np
-import torch
-import random
-
-def set_seed(seed=42):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+```bash
+python -m venv .venv
 ```
 
-Data splitting strategies depend on the dataset size.
+**Windows:**
 
-For sufficiently large datasets, we use a standard split:
-
-- Train
-- Validation
-- Test
-
-This ensures consistent model evaluation and prevents information leakage.
-
-For smaller datasets (such as the Coimbra dataset), where a fixed split may lead to unstable estimates, we instead use **cross-validation** and **cross_val_predict** to obtain more reliable performance estimates across folds.
-
-This approach helps reduce variance in evaluation and provides a more robust estimate of model generalization.
-
-
-# Environment Setup
-
-Create environment using conda:
-
-```
-conda env create -f environment.yml
-conda activate breast-cancer-ml
+```bash
+.venv/Scripts/activate
 ```
 
-Or using pip:
+**Linux/Mac:**
 
+```bash
+source .venv/bin/activate
 ```
+
+---
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-# Evaluation
+### 4. Install as a package (recommended)
+
+```bash
+pip install -e .
+```
+
+This allows you to use imports like:
+
+```python
+from src.data.load_data import load_wisconsin_dataset
+```
+
+---
+
+## Experiment Tracking with MLflow
+
+Start MLflow UI:
+
+```bash
+mlflow ui
+```
+
+Open in browser:
+
+```
+http://127.0.0.1:5000
+```
+
+---
+
+## Model Training
+
+Run the training pipeline:
+
+```bash
+python src/pipelines/train_pipeline.py
+```
+
+This will:
+
+* Load data
+* Train the model
+* Evaluate performance
+* Log metrics and artifacts in MLflow
+
+---
+
+## API Deployment (FastAPI)
+
+Start the API:
+
+```bash
+uvicorn api:app --reload
+```
+
+API will be available at:
+
+```
+http://127.0.0.1:8000
+```
+
+---
+
+## API Testing (Batch Prediction)
+
+Run:
+
+```bash
+python test_api.py
+```
+
+### Example Output
+
+```
+===== BATCH PREDICTION SUMMARY =====
+
+Number of samples processed: 569
+Raw classes: Counter({0: 357, 1: 212})
+Labels:      Counter({'benign': 357, 'malignant': 212})
+
+Total latency: 0.123456 seconds
+Latency per sample: 0.000217 seconds
+```
+
+---
+
+##  Results
+
+Model performance and experiments are tracked using MLflow.
+
+### Evaluation Metrics
 
 Model evaluation focuses on metrics that better capture performance under potential class imbalance and diagnostic relevance.
 
@@ -192,59 +230,126 @@ The primary metrics considered are:
 - **F1-score (macro)**  
   Provides a balanced evaluation across classes and is particularly useful when class distributions are uneven.
 
-- **Sensitivity (Recall / True Positive Rate)**  
-  Measures the proportion of actual cancer cases correctly identified by the model.  
-  In clinical settings, high sensitivity is critical to minimize missed diagnoses.
+- **Sensitivity**  
+  In a Wisconsin context, it measures the proportion of bening cases correctly identified by the model.  
 
-- **Specificity (True Negative Rate)**  
-  Measures how well the model correctly identifies non-cancer cases.
+- **Specificity**  
+  In a Wisconsin context, it measures the proportion of malignant cases correctly identified by the model.
 
 Error analysis includes:
 
 - confusion matrices
-- inspection of misclassified samples
+- shap values inspection of misclassified samples
 - feature importance analysis
 
----
+### Optimization Objective
 
-# Responsible AI Considerations
+The training process was optimized to **maximize the Macro F1-score**, ensuring balanced performance across both classes.
 
-Medical datasets often suffer from limitations such as:
-
-- small sample sizes
-- demographic bias
-- lack of geographic diversity
-
-These factors must be considered when interpreting model performance.
+Detailed experiment results, visualizations, and performance analysis can be found here:
+**[View Results Report](reports/README.md)**
 
 ---
+All experiments were conducted using the Wisconsin dataset and tracked with MLflow to ensure reproducibility and proper experiment management.
 
-# License
+## End-to-End Workflow
+
+1. Activate environment
+2. Run the [data exploration notebook](notebooks/eda/wisconsin_exploration.ipynb)
+3. Start MLflow UI
+4. Train model
+5. Launch FastAPI
+6. Run inference via API
+
+---
+
+## Key Features
+
+* Modular ML architecture
+* Reproducible pipelines
+* Experiment tracking with MLflow
+* API deployment with FastAPI
+* Batch prediction support
+
+---
+
+## Reproducibility
+
+To ensure reproducibility, random seeds are fixed across libraries.
+
+### Data Splitting Strategy
+
+The data splitting approach depends on the dataset size and the need for reliable performance estimation.
+
+#### Standard Approach (Large Datasets)
+
+For sufficiently large datasets, we use a conventional split:
+
+* Train
+* Validation
+* Test
+
+This ensures consistent evaluation and prevents information leakage.
+
+#### Wisconsin Dataset Strategy
+
+Given the relatively small size of the Wisconsin dataset, a fixed split may lead to unstable performance estimates. To address this:
+
+* The dataset is split into:
+
+  * 80% training
+  * 20% test
+
+* On the training set:
+
+  * Cross-validation is performed for model training and selection
+  * `cross_val_predict` is used to obtain out-of-fold predictions and compute reliable metrics
+
+* The best model is then retrained on the full training set and evaluated on the held-out test set
+
+
+This approach reduces variance, avoids overfitting to a single split, and ensures unbiased evaluation on unseen data.
+
+---
+## Responsible AI Considerations
+
+Medical datasets often have important limitations:
+
+* Small sample sizes
+* Potential demographic bias
+* Limited geographic diversity
+
+These factors can impact model generalization and lead to biased results.
+
+Additionally, in the Wisconsin dataset:
+
+* **Class 0 = malignant**
+* **Class 1 = benign**
+
+This is the inverse of the usual convention, so metric interpretation (e.g., sensitivity, specificity) must be handled carefully.
+
+## Dataset Usage
+
+The dataset used in this repository is publicly available and is subject to its respective license.
+
+- Breast Cancer Wisconsin Diagnostic Dataset — UCI Machine Learning Repository  
+
+For reproducibility, data loading scripts are provided. Users should ensure compliance with the original dataset licenses when accessing and using the data.
+
+## License
 
 The source code in this repository is released under the **MIT License**.
 
 This project is intended for **research and educational purposes**.
 
-## Dataset Usage
+## Contributions
 
-The datasets used in this repository are publicly available and are subject to their respective licenses.
-
-- Breast Cancer Coimbra Dataset — UCI Machine Learning Repository  
-- Breast Cancer Wisconsin Diagnostic Dataset — UCI Machine Learning Repository  
-- BreakHis (Breast Cancer Histopathological Database)
-
-Datasets are **not redistributed in this repository**.
-
-For reproducibility, data loading scripts are provided.  
-Some datasets can be automatically loaded using Python libraries or direct URLs, while others must be downloaded from their original sources due to their size.
-
-Users should ensure compliance with the original dataset licenses when accessing and using the data.
-
-
----
+Contributions are welcome!
+Feel free to open issues or submit pull requests.
 
 # Author
 
 Maria Alejandra Vélez Clavijo  
 Machine Learning & Artificial Intelligence Research
+
 
