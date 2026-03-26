@@ -347,7 +347,7 @@ This project is intended for **research and educational purposes**.
 Contributions are welcome!
 Feel free to open issues or submit pull requests.
 
-# Author
+## Author
 
 Maria Alejandra Vélez Clavijo  
 Machine Learning & Artificial Intelligence Research
