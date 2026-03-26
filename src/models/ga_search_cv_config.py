@@ -8,6 +8,7 @@ from models.model_settings import ModelConfig, FeatureSelectorConfig
 from sklearn.model_selection import BaseCrossValidator
 from sklearn.metrics._scorer import _BaseScorer
 import mlflow.data
+import copy
 # from data.synthetic_data_generation import SyntheticDataGenerator
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import cross_val_predict
@@ -171,6 +172,7 @@ class GAModelSearch:
                             ("estimator", estimator),
                         ]
                     )
+                pipeline.set_output(transform="pandas")
 
                 # Configure the search
                 mlflow.log_param("cv", str(cv))
@@ -198,7 +200,7 @@ class GAModelSearch:
                         ("estimator", best_pipeline.named_steps["estimator"]),
                     ]
                 )
-                selected_features = inference_pipeline.feature_names_in_
+                selected_features = best_pipeline.named_steps["scaler"].feature_names_in_
 
                 print(f"Best {name} model achieved score: {score:.2f}")
 
@@ -262,7 +264,7 @@ class GAModelSearch:
                 # Update best model if current model is better
                 if score > best_score:
                     best_score = score
-                    best_model = inference_pipeline
+                    best_model = copy.deepcopy(inference_pipeline)
                     best_model_name = name
                     best_metrics_dict = metrics_dict
                     best_run_id = current_run_id
@@ -271,7 +273,7 @@ class GAModelSearch:
             with mlflow.start_run(run_id=best_run_id):
                 print("Logging test metrics into best model run...")
 
-                X_test_selected = X_test[selected_features]
+                X_test_selected = X_test[best_model.feature_names_in_]
 
                 y_pred_test = best_model.predict(X_test_selected)
                 y_proba_test = best_model.predict_proba(X_test_selected)[:, 1]
