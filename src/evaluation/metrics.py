@@ -113,7 +113,7 @@ class ClassificationMetrics:
             return None
 
     def plot_classification_report(
-        self, print_df: bool = True, return_fig: bool = True
+        self, return_fig: bool = True, print_df: bool = False
     ) -> Optional[plt.Figure]:
         """
         Plot the classification report as a table.
@@ -130,28 +130,27 @@ class ClassificationMetrics:
         )
         df: pd.DataFrame = pd.DataFrame(report).transpose()
         df = df.round(2)
-
         if print_df:
-            display(df)
-
-        fig, ax = plt.subplots(figsize=(8, 4))
-        ax.axis("off")
-
-        table = ax.table(
-            cellText=df.values,
-            colLabels=df.columns,
-            rowLabels=df.index,
-            loc="center",
-        )
-        table.auto_set_font_size(False)
-        table.set_fontsize(10)
-        table.auto_set_column_width(col=list(range(len(df.columns))))
-
-        ax.set_title("Classification Report")
-        fig.tight_layout()
-
-        if return_fig:
-            return fig
+            print(df)
         else:
-            plt.show()
-            return None
+            fig, ax = plt.subplots(figsize=(8, 4))
+            ax.axis("off")
+
+            table = ax.table(
+                cellText=df.values,
+                colLabels=df.columns,
+                rowLabels=df.index,
+                loc="center",
+            )
+            table.auto_set_font_size(False)
+            table.set_fontsize(10)
+            table.auto_set_column_width(col=list(range(len(df.columns))))
+
+            ax.set_title("Classification Report")
+            fig.tight_layout()
+
+            if return_fig:
+                return fig
+            else:
+                plt.show()
+                return None
