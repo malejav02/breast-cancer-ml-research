@@ -203,20 +203,19 @@ python test_api.py
 
 ```
 ===== BATCH PREDICTION SUMMARY =====
-
 Number of samples processed: 569
-Raw classes: Counter({0: 357, 1: 212})
-Labels:      Counter({'benign': 357, 'malignant': 212})
-
-Total latency: 0.123456 seconds
-Latency per sample: 0.000217 seconds
+   Raw classes: Counter({1: 353, 0: 216})
+   Labels:      Counter({'benign': 353, 'malignant': 216})
+   Total latency: 0.006881 seconds
+   Latency per sample: 0.000012 seconds
 ```
 
 ---
 
 ##  Results
 
-Model performance and experiments are tracked using MLflow.
+Model performance and experiments are tracked using MLflow. Detailed experiment results, visualizations, and performance analysis can be found here:
+**[View Results Report](reports/README.md)**
 
 ### Evaluation Metrics
 
@@ -236,22 +235,21 @@ The primary metrics considered are:
 - **Specificity**  
   In a Wisconsin context, it measures the proportion of malignant cases correctly identified by the model.
 
-Error analysis includes:
+### Error Analysis & Interpretability
 
-- confusion matrices
-- shap values inspection of misclassified samples
-- feature importance analysis
+To better understand model limitations and decision patterns, several analysis techniques are applied:
+
+- Confusion matrix inspection to identify misclassification patterns  
+- Feature importance analysis to determine key predictive variables  
+- SHAP values to explain individual predictions, especially misclassified samples
 
 ### Optimization Objective
 
 The training process was optimized to **maximize the Macro F1-score**, ensuring balanced performance across both classes.
 
-Detailed experiment results, visualizations, and performance analysis can be found here:
-**[View Results Report](reports/README.md)**
+**Note**:All experiments were conducted using the Wisconsin dataset and tracked with MLflow to ensure reproducibility and proper experiment management.
 
 ---
-All experiments were conducted using the Wisconsin dataset and tracked with MLflow to ensure reproducibility and proper experiment management.
-
 ## End-to-End Workflow
 
 1. Activate environment
@@ -260,16 +258,7 @@ All experiments were conducted using the Wisconsin dataset and tracked with MLfl
 4. Train model
 5. Launch FastAPI
 6. Run inference via API
-
----
-
-## Key Features
-
-* Modular ML architecture
-* Reproducible pipelines
-* Experiment tracking with MLflow
-* API deployment with FastAPI
-* Batch prediction support
+7. Execute the [error analysis & interpretability](https://github.com/malejav02/breast-cancer-ml-research/blob/main/notebooks/others/wisconsin_error_analysis.ipynb) 
 
 ---
 
@@ -277,6 +266,7 @@ All experiments were conducted using the Wisconsin dataset and tracked with MLfl
 
 To ensure reproducibility, random seeds are fixed across libraries.
 
+---
 ### Data Splitting Strategy
 
 The data splitting approach depends on the dataset size and the need for reliable performance estimation.
@@ -328,6 +318,8 @@ Additionally, in the Wisconsin dataset:
 
 This is the inverse of the usual convention, so metric interpretation (e.g., sensitivity, specificity) must be handled carefully.
 
+---
+
 ## Dataset Usage
 
 The dataset used in this repository is publicly available and is subject to its respective license.
@@ -336,17 +328,20 @@ The dataset used in this repository is publicly available and is subject to its 
 
 For reproducibility, data loading scripts are provided. Users should ensure compliance with the original dataset licenses when accessing and using the data.
 
+---
 ## License
 
 The source code in this repository is released under the **MIT License**.
 
 This project is intended for **research and educational purposes**.
 
+---
 ## Contributions
 
 Contributions are welcome!
 Feel free to open issues or submit pull requests.
 
+---
 ## Author
 
 Maria Alejandra Vélez Clavijo  
