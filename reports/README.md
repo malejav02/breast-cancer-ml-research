@@ -148,4 +148,17 @@ Number of samples processed: 569
    Total latency: 0.006881 seconds
    Latency per sample: 0.000012 seconds
 ```
+--- 
+## System Specifications
 
+The experiments were executed on the following device:
+
+| Specification        | Details                                                   |
+|----------------------|-----------------------------------------------------------|
+| **Device Name**      | DESKTOP-UP8PQV6                                          |
+| **Processor**        | AMD Ryzen 7 7730U with Radeon Graphics (2.00 GHz)       |
+| **Installed RAM**    | 16.0 GB (13.8 GB usable)                                 |
+| **Device ID**        | 19A20620-28DD-42CA-AAB0-0F90FE4628CC                     |
+| **Product ID**       | 00330-80000-00000-AA557                                  |
+| **System Type**      | 64-bit operating system, x64-based processor            |
+| **Pen and Touch**    | No pen or touch input available                           |
